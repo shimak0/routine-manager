@@ -1,79 +1,66 @@
 const routineForm = document.getElementById('routine-form');
 const routineList = document.getElementById('routine-list');
-const routines = [];
+let routines = [];
 
-// Service Workerの登録
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js').then(() => {
-    console.log('Service Worker registered');
-  });
-}
-
-// 通知許可リクエスト
-Notification.requestPermission().then(permission => {
-  if (permission === 'granted') {
-    console.log('通知が許可されました');
-  } else {
-    console.error('通知が拒否されました');
-  }
-});
-
-// フォーム送信時の処理
+// スケジュールを作成・保存
 routineForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const time = document.getElementById('routine-time').value;
   const task = document.getElementById('routine-task').value;
 
-  const routine = { time, task };
+  const routine = { id: Date.now(), time, task }; // IDを一意にする
   routines.push(routine);
   saveRoutines();
-
   displayRoutines();
-  scheduleNotification(time, task);
 });
 
+// スケジュールの保存
 function saveRoutines() {
   localStorage.setItem('routines', JSON.stringify(routines));
 }
 
+// スケジュールの読み込み
 function loadRoutines() {
   const savedRoutines = JSON.parse(localStorage.getItem('routines') || '[]');
-  savedRoutines.forEach(routine => {
-    routines.push(routine);
-    scheduleNotification(routine.time, routine.task);
-  });
+  routines = savedRoutines;
   displayRoutines();
 }
 
+// スケジュールの表示
 function displayRoutines() {
   routineList.innerHTML = '';
-  routines.forEach(routine => {
-    const li = document.createElement('li');
-    li.textContent = `${routine.time} - ${routine.task}`;
-    routineList.appendChild(li);
-  });
+  routines
+    .sort((a, b) => a.time.localeCompare(b.time)) // 時間順に並べ替え
+    .forEach((routine) => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <span>${routine.time} - ${routine.task}</span>
+        <button onclick="editRoutine(${routine.id})">編集</button>
+        <button onclick="deleteRoutine(${routine.id})">削除</button>
+      `;
+      routineList.appendChild(li);
+    });
 }
 
-function scheduleNotification(time, task) {
-    const [hours, minutes] = time.split(':').map(Number);
-    const now = new Date();
-    const targetTime = new Date();
-    targetTime.setHours(hours, minutes, 0, 0);
-
-    const delay = targetTime.getTime() - now.getTime();
-    console.log(`通知スケジュール: 現在の時刻=${now}, 目標時刻=${targetTime}, 遅延=${delay}ms`);
-
-    if (delay > 0) {
-      setTimeout(() => {
-        new Notification('ルーティン通知', {
-          body: task,
-          icon: 'icon.png',
-        });
-      }, delay);
-    } else {
-      console.error('指定した時間が過去です。');
-    }
+// スケジュールの編集
+function editRoutine(id) {
+  const routine = routines.find((r) => r.id === id);
+  if (routine) {
+    const newTime = prompt('新しい時間を入力', routine.time);
+    const newTask = prompt('新しいタスク内容を入力', routine.task);
+    if (newTime) routine.time = newTime;
+    if (newTask) routine.task = newTask;
+    saveRoutines();
+    displayRoutines();
   }
+}
 
-// ページ読み込み時にルーティンを復元
+// スケジュールの削除
+function deleteRoutine(id) {
+  routines = routines.filter((r) => r.id !== id);
+  saveRoutines();
+  displayRoutines();
+}
+
+// 初期化
 loadRoutines();

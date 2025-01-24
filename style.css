@@ -1,0 +1,26 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
+
+  form {
+    margin-bottom: 20px;
+  }
+
+  #routine-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  #routine-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 5px;
+  }
+
+  #routine-list li button {
+    margin-left: 10px;
+  }
