@@ -55,21 +55,25 @@ function displayRoutines() {
 }
 
 function scheduleNotification(time, task) {
-  const [hours, minutes] = time.split(':').map(Number);
-  const now = new Date();
-  const targetTime = new Date();
-  targetTime.setHours(hours, minutes, 0, 0);
+    const [hours, minutes] = time.split(':').map(Number);
+    const now = new Date();
+    const targetTime = new Date();
+    targetTime.setHours(hours, minutes, 0, 0);
 
-  const delay = targetTime.getTime() - now.getTime();
-  if (delay > 0) {
-    setTimeout(() => {
-      new Notification('ルーティン通知', {
-        body: task,
-        icon: 'icon.png',
-      });
-    }, delay);
+    const delay = targetTime.getTime() - now.getTime();
+    console.log(`通知スケジュール: 現在の時刻=${now}, 目標時刻=${targetTime}, 遅延=${delay}ms`);
+
+    if (delay > 0) {
+      setTimeout(() => {
+        new Notification('ルーティン通知', {
+          body: task,
+          icon: 'icon.png',
+        });
+      }, delay);
+    } else {
+      console.error('指定した時間が過去です。');
+    }
   }
-}
 
 // ページ読み込み時にルーティンを復元
 loadRoutines();
